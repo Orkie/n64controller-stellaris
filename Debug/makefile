@@ -7,6 +7,7 @@ CG_TOOL_ROOT := /opt/tiva/ccs/ccsv5/tools/compiler/arm_5.1.1
 ORDERED_OBJS += \
 $(GEN_CMDS__FLAG) \
 "./ustdlib.obj" \
+"./uartstdio.obj" \
 "./tm4c123gh6pm_startup_ccs.obj" \
 "./protocol.obj" \
 "./n64usbhid.obj" \
@@ -127,8 +128,8 @@ n64controller.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(TMS470_EXECUTABLE_OUTPUTS__QUOTED) "n64controller.out"
-	-$(RM) "device.pp" "main.pp" "n64usbhid.pp" "protocol.pp" "tm4c123gh6pm_startup_ccs.pp" "ustdlib.pp" 
-	-$(RM) "device.obj" "main.obj" "n64usbhid.obj" "protocol.obj" "tm4c123gh6pm_startup_ccs.obj" "ustdlib.obj" 
+	-$(RM) "device.pp" "main.pp" "n64usbhid.pp" "protocol.pp" "tm4c123gh6pm_startup_ccs.pp" "uartstdio.pp" "ustdlib.pp" 
+	-$(RM) "device.obj" "main.obj" "n64usbhid.obj" "protocol.obj" "tm4c123gh6pm_startup_ccs.obj" "uartstdio.obj" "ustdlib.obj" 
 	-@echo 'Finished clean'
 	-@echo ' '
 
