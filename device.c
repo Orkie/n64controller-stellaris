@@ -31,10 +31,6 @@ static const tControllerPortMap controllerPorts[] =
 	{ GPIO_PORTB_AHB_BASE, GPIO_PIN_3 }
 };
 
-//GPIOPortIntRegister(GPIO_PORTJ_BASE,IntGPIOJ);
-//GPIOIntTypeSet(GPIO_PORTJ_BASE, GPIO_PIN_7,    GPIO_FALLING_EDGE );
-//GPIOPinIntEnable(GPIO_PORTJ_BASE,GPIO_PIN_7);
-
 // http://stackoverflow.com/a/1598827/1474139
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 

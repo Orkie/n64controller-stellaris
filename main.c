@@ -50,7 +50,6 @@ int main(void) {
 
     // Configure LED
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
 	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED);
 	GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, RED_LED);
 
@@ -67,7 +66,7 @@ int main(void) {
 		if(status->IsConnected) {
 			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
 		}
-		sysDelayUs(100);
+		sysDelayUs(200);
 
 //		N64DevButtons(0);
 //		tN64Buttons* buttons = N64DevButtons(0);
