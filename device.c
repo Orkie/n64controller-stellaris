@@ -39,9 +39,9 @@ static unsigned char gcN64Buffer[36];
 static unsigned long GCN64Transaction(unsigned long ulPort, unsigned char ucPin, unsigned char *buffer, unsigned long toSend)
 {
 	n64Transmit(buffer, toSend);
+	return n64Receive(buffer);
 //	if (GCN64Send(ulPort, ucPin, buffer, toSend))
 //	{
-	return 0;
 //		return GCN64Receive(ulPort, ucPin, buffer);
 //	}
 //	else
@@ -78,6 +78,12 @@ tGCN64Status *GCN64DevStatus(unsigned char controller)
 
 	gcN64Buffer[0] = 0x01;
 	len = GCN64Transaction(controllerPorts[controller].ulPort, controllerPorts[controller].ucPin, gcN64Buffer, 1);
+
+	sendString("0x%x\n", gcN64Buffer);
+
+	if(len == 3 && gcN64Buffer[0] == 0xFA) {
+		GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
+	}
 
 	if (len != sizeof(tGCN64Status))
 	{

@@ -42,6 +42,9 @@ void sysDelayUs(uint32_t ui32Us) {
 	SysCtlDelay(ui32Us * (SysCtlClockGet() / 3 / 1000000));
 }
 
+void n64Transmit(uint8_t bytes[], int length);
+int n64Receive(uint8_t buffer[]);
+
 int main(void) {
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_PLL);
 	SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
@@ -57,16 +60,22 @@ int main(void) {
 
 	GCN64DevInitialize();
 
-	GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, GREEN_LED);
+	uint8_t buffer[32];
 
 	while(1) {
 
-		tGCN64Status* status = GCN64DevStatus(0);
-
-		if(status->IsConnected) {
+		buffer[0] = 0x01;
+		n64Transmit(buffer, 1);
+		n64Receive(buffer);
+		if(buffer[0] == 0x5F) {
 			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
 		}
-		sysDelayUs(200);
+//		tGCN64Status* status = GCN64DevStatus(0);
+//
+//		if(status->IsConnected) {
+//			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
+//		}
+		sysDelayUs(1000);
 
 //		N64DevButtons(0);
 //		tN64Buttons* buttons = N64DevButtons(0);
