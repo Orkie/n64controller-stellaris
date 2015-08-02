@@ -32,8 +32,10 @@ volatile uint8_t buffer[256];
 volatile int txNumBytes;
 volatile int interruptCount;
 volatile uint8_t outputSteps[4];
-volatile bool doSomething;
 volatile uint8_t data;
+volatile bool newBit;
+volatile uint32_t lowTime;
+volatile uint32_t highTime;
 
 #define CURRENT_BIT() ((data&currentBit) != 0)
 
@@ -69,7 +71,6 @@ void n64Transmit(uint8_t bytes[], int length) {
 	currentByte = 0;
 	interruptCount = 4;
 	txNumBytes = length;
-	doSomething = false;
 
 	prepareOutputSteps();
 	GPIOPINWRITE(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, 0xFF);
@@ -83,8 +84,6 @@ void n64Transmit(uint8_t bytes[], int length) {
 			// we've finished
 			TIMERDISABLE(TIMER0_BASE, TIMER_A);
 			GPIOPINWRITE(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, 0xFF);
-			GPIODIRSET(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, GPIO_DIR_MODE_IN);
-//			IntEnable(INT_GPIOB);
 			return;
 		}
 
@@ -109,6 +108,50 @@ void n64Transmit(uint8_t bytes[], int length) {
 	}
 }
 
+int n64Receive(uint8_t buffer[]) {
+	int bytesRead = 0;
+	newBit = false;
+	currentByte = 0;
+	currentBit = 0x80;
+	lowTime = 0;
+	highTime = 0;
+	data = 0x00;
+
+	GPIODIRSET(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, GPIO_DIR_MODE_IN);
+	IntEnable(INT_GPIOB);
+
+	while(!newBit);
+
+	while(1) {
+		if(newBit) {
+			if(highTime > lowTime) {
+				data |= currentBit;
+			}
+
+			lowTime = 0;
+			highTime = 0;
+			newBit = false;
+			if((currentBit >>= 1) == 0) {
+				// new byte!
+				currentBit = 0x80;
+				buffer[currentByte++] = data;
+				data = 0;
+				bytesRead++;
+			}
+		}
+
+		if(GPIOPINREAD(GPIO_PORTB_AHB_BASE, GPIO_PIN_0)) {
+			highTime++;
+			if(highTime > 2000) { // we've reached the end
+				IntDisable(INT_GPIOB);
+				return bytesRead;
+			}
+		} else {
+			lowTime++;
+		}
+	}
+}
+
 volatile bool trigger = false;
 void Timer0IntHandler() {
 	TIMERINTCLEAR(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
@@ -120,7 +163,7 @@ void Timer0IntHandler() {
 
 void GpioBIntHandler() {
 	GPIOIntClear(GPIO_PORTB_AHB_BASE,GPIO_PIN_0);
-	GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
+	newBit = true;
 }
 
 #define TIMERALOADSET(ulBase, ulValue) \
@@ -142,7 +185,7 @@ void GCN64InitializeProtocol(void)
 
 	// 1us resolution
 //	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet() / 1000000);
-	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet() / 1000000);
+	TimerLoadSet(TIMER0_BASE, TIMER_A, 80000000 / 1000000);
 
 	TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
