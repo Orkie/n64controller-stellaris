@@ -65,7 +65,7 @@ int main(void) {
 	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED);
 	GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, RED_LED);
 
-	init_usb_uart();
+//	init_usb_uart();
 
 //	initN64USB();
 
@@ -78,35 +78,13 @@ int main(void) {
 	n64Transmit(buffer, 1);
 	int count = n64Receive(buffer);
 	if(count == 3 && buffer[0] == 0x05 && buffer[1] == 0x00) {
-								GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
+		GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
 	}
 
 	while(1) {
-
-
-//		tGCN64Status* status = GCN64DevStatus(0);
-//
-//		if(status->IsConnected) {
-//			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
-//		}
-//		sysDelayUs(1000);
-
-//		N64DevButtons(0);
-//		tN64Buttons* buttons = N64DevButtons(0);
-//		if(buttons->Start) {
-//						GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
-//
-//		}
-
-//		if(isConnected()) {
-//			sendString();
-//			unsigned long dataToRead = isDataReadyToRead();
-//			if(dataToRead != 0) {
-//				uint8_t* data = readData(dataToRead);
-//				if(data[0] == 'a') {
-//					GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
-//				}
-//			}
-//		}
+		n64Transmit(buffer, 1);
+//		int c2 = n64Receive(buffer);
+//			UARTprintf("Bytes: %x %x %x %d\n", buffer[0], buffer[1], buffer[2], c2);
+		sysDelayUs(1000);
 	}
 }
