@@ -79,8 +79,6 @@ tGCN64Status *GCN64DevStatus(unsigned char controller)
 	gcN64Buffer[0] = 0x01;
 	len = GCN64Transaction(controllerPorts[controller].ulPort, controllerPorts[controller].ucPin, gcN64Buffer, 1);
 
-	sendString("0x%x\n", gcN64Buffer);
-
 	if(len == 3 && gcN64Buffer[0] == 0xFA) {
 		GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
 	}

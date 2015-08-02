@@ -110,6 +110,7 @@ void n64Transmit(uint8_t bytes[], int length) {
 
 int n64Receive(uint8_t buffer[]) {
 	int bytesRead = 0;
+	bool firstLoop = false;
 	newBit = false;
 	currentByte = 0;
 	currentBit = 0x80;
@@ -121,9 +122,10 @@ int n64Receive(uint8_t buffer[]) {
 	IntEnable(INT_GPIOB);
 
 	while(!newBit);
+	newBit = false;
 
 	while(1) {
-		if(newBit) {
+		if(newBit && !firstLoop) {
 			if(highTime > lowTime) {
 				data |= currentBit;
 			}
@@ -139,15 +141,14 @@ int n64Receive(uint8_t buffer[]) {
 				bytesRead++;
 			}
 		}
+		firstLoop = false;
 
-		if(GPIOPINREAD(GPIO_PORTB_AHB_BASE, GPIO_PIN_0)) {
-			highTime++;
-			if(highTime > 2000) { // we've reached the end
+		while(!GPIOPINREAD(GPIO_PORTB_AHB_BASE, GPIO_PIN_0)) { lowTime++; }
+		while(GPIOPINREAD(GPIO_PORTB_AHB_BASE, GPIO_PIN_0)) {
+			if(highTime++ > 2000) { // we've reached the end
 				IntDisable(INT_GPIOB);
 				return bytesRead;
 			}
-		} else {
-			lowTime++;
 		}
 	}
 }
@@ -185,7 +186,7 @@ void GCN64InitializeProtocol(void)
 
 	// 1us resolution
 //	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet() / 1000000);
-	TimerLoadSet(TIMER0_BASE, TIMER_A, 80000000 / 1000000);
+	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet() / 1000000);
 
 	TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
