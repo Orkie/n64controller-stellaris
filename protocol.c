@@ -46,15 +46,15 @@ volatile uint8_t data;
 
 inline void prepareOutputSteps() {
 	if(CURRENT_BIT()) {
-		outputSteps[0] = 0x00;
-		outputSteps[1] = 0xFF;
+		outputSteps[3] = 0x00;
 		outputSteps[2] = 0xFF;
-		outputSteps[3] = 0xFF;
+		outputSteps[1] = 0xFF;
+		outputSteps[0] = 0xFF;
 	} else {
-		outputSteps[0] = 0x00;
-		outputSteps[1] = 0x00;
+		outputSteps[3] = 0x00;
 		outputSteps[2] = 0x00;
-		outputSteps[3] = 0xFF;
+		outputSteps[1] = 0x00;
+		outputSteps[0] = 0xFF;
 	}
 }
 
@@ -84,7 +84,7 @@ void n64Transmit(uint8_t bytes[], int length) {
 			TIMERDISABLE(TIMER0_BASE, TIMER_A);
 			GPIOPINWRITE(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, 0xFF);
 			GPIODIRSET(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, GPIO_DIR_MODE_IN);
-			IntEnable(INT_GPIOB);
+//			IntEnable(INT_GPIOB);
 			return;
 		}
 
@@ -93,9 +93,9 @@ void n64Transmit(uint8_t bytes[], int length) {
 			currentBit = 0x80;
 			if(currentByte == txNumBytes) { // should the next transmit be the the stop signal?
 				// send stop signal
-				outputSteps[0] = 0x00;
+				outputSteps[2] = 0x00;
 				outputSteps[1] = 0xFF;
-				outputSteps[2] = 0xFF;
+				outputSteps[0] = 0xFF;
 				interruptCount = 3;
 			} else { // prepare the next bit to send for the new byte
 				prepareOutputSteps();
@@ -141,6 +141,7 @@ void GCN64InitializeProtocol(void)
 	TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
 
 	// 1us resolution
+//	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet() / 1000000);
 	TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet() / 1000000);
 
 	TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);

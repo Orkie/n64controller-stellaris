@@ -38,14 +38,16 @@ static unsigned char gcN64Buffer[36];
 
 static unsigned long GCN64Transaction(unsigned long ulPort, unsigned char ucPin, unsigned char *buffer, unsigned long toSend)
 {
-	if (GCN64Send(ulPort, ucPin, buffer, toSend))
-	{
-		return GCN64Receive(ulPort, ucPin, buffer);
-	}
-	else
-	{
-		return 0;
-	}
+	n64Transmit(buffer, toSend);
+//	if (GCN64Send(ulPort, ucPin, buffer, toSend))
+//	{
+	return 0;
+//		return GCN64Receive(ulPort, ucPin, buffer);
+//	}
+//	else
+//	{
+//		return 0;
+//	}
 }
 
 void GCN64DevInitialize(void)
@@ -67,30 +69,24 @@ void GCN64DevReset(unsigned char controller)
 	gcN64Buffer[0] = 0xFF;
 	GCN64Send(controllerPorts[controller].ulPort, controllerPorts[controller].ucPin, gcN64Buffer, 1);
 }
-
+#define RED_LED   GPIO_PIN_1
+#define BLUE_LED  GPIO_PIN_2
+#define GREEN_LED GPIO_PIN_3
 tGCN64Status *GCN64DevStatus(unsigned char controller)
 {
-//	unsigned long len;
-//
-//	if (controller > COUNT_OF(controllerPorts))
-//	{
-//		return 0;
-//	}
-
-//	gcN64Buffer[0] = 0x00;
-//	len = GCN64Transaction(controllerPorts[controller].ulPort, controllerPorts[controller].ucPin, gcN64Buffer, 1);
-//
-//	if (len != sizeof(tGCN64Status))
-//	{
-//		return 0;
-//	}
+	unsigned long len;
 
 	gcN64Buffer[0] = 0x01;
-	n64Transmit(gcN64Buffer, 1);
+	len = GCN64Transaction(controllerPorts[controller].ulPort, controllerPorts[controller].ucPin, gcN64Buffer, 1);
 
-	return 0;
+	if (len != sizeof(tGCN64Status))
+	{
+		return 0;
+	}
 
-//	return (tGCN64Status*)gcN64Buffer;
+//	n64Transmit(gcN64Buffer, 1);
+
+	return (tGCN64Status*)gcN64Buffer;
 }
 
 tN64Buttons *N64DevButtons(unsigned char controller)
