@@ -42,6 +42,7 @@ volatile uint8_t data;
 #define TIMERDISABLE(ulBase, ulTimer) (HWREG((ulBase) + TIMER_O_CTL) &= ~((ulTimer) & (TIMER_CTL_TAEN | TIMER_CTL_TBEN)))
 #define GPIOPINWRITE(ulPort, ucPins, ucVal) (HWREGB((ulPort) + GPIO_O_DATA + ((ucPins) << 2)) = (ucVal))
 #define GPIODIRSET(ulPort, ucPins, ulPinIO) (HWREG((ulPort) + GPIO_O_DIR) = (((ulPinIO) & 1) ? (HWREG((ulPort) + GPIO_O_DIR) | (ucPins)) : (HWREG((ulPort) + GPIO_O_DIR) & ~(ucPins))))
+#define GPIOPINREAD(ulPort, ucPins) (HWREGB((ulPort) + GPIO_O_DATA + ((ucPins) << 2)))
 
 inline void prepareOutputSteps() {
 	if(CURRENT_BIT()) {
@@ -83,7 +84,7 @@ void n64Transmit(uint8_t bytes[], int length) {
 			TIMERDISABLE(TIMER0_BASE, TIMER_A);
 			GPIOPINWRITE(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, 0xFF);
 			GPIODIRSET(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, GPIO_DIR_MODE_IN);
-			GPIOIntEnable(GPIO_PORTA_BASE, GPIO_PIN_0);
+			IntEnable(INT_GPIOB);
 			return;
 		}
 
@@ -118,12 +119,9 @@ void Timer0IntHandler() {
 }
 
 void GpioBIntHandler() {
+	GPIOIntClear(GPIO_PORTB_AHB_BASE,GPIO_PIN_0);
 	GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
-	GPIOIntDisable(GPIO_PORTA_BASE, GPIO_PIN_0);
 }
-
-#define GPIOPINREAD(ulPort, ucPins) \
-	(HWREGB((ulPort) + GPIO_O_DATA + ((ucPins) << 2)))
 
 #define TIMERALOADSET(ulBase, ulValue) \
 	(HWREG((ulBase) + TIMER_O_TAILR) = (ulValue))
@@ -134,8 +132,7 @@ static volatile unsigned char g_ucNextDelay;
 
 void GCN64InitializeProtocol(void)
 {
-	if (g_ucHasInitialized)
-	{
+	if (g_ucHasInitialized) {
 		return;
 	}
 
@@ -152,24 +149,9 @@ void GCN64InitializeProtocol(void)
 
 	IntEnable(INT_TIMER0A);
 
-	/*
-	 *  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-  SysCtlDelay(3);
-  GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_2);
-  GPIOIntEnable(GPIO_PORTA_BASE, GPIO_PIN_2);
-  GPIOIntTypeSet(GPIO_PORTA_BASE, GPIO_PIN_2,GPIO_BOTH_EDGES);
-  GPIOIntRegister(GPIO_PORTA_BASE,inputInt);
-	 *
-	 */
-
-//	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-//	IntEnable(INT_GPIOB);
-//	GPIOIntTypeSet(GPIO_PORTB_BASE, GPIO_PIN_0, GPIO_FALLING_EDGE);
-//	GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
-
-	GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, GPIO_PIN_4);
-	GPIOIntTypeSet(GPIO_PORTF_BASE, GPIO_PIN_4, GPIO_RISING_EDGE);
-	GPIOIntEnable(GPIO_PORTF_BASE, GPIO_PIN_4);
+	GPIOPinTypeGPIOInput(GPIO_PORTB_AHB_BASE, GPIO_PIN_0);
+	GPIOIntTypeSet(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, GPIO_FALLING_EDGE);
+	GPIOIntEnable(GPIO_PORTB_AHB_BASE, GPIO_PIN_0);
 
 	g_ucHasInitialized = true;
 }
