@@ -34,6 +34,7 @@ main.obj: /opt/tiva/tivaware/usblib/device/usbdcdc.h
 main.obj: /opt/tiva/tivaware/usblib/usbhid.h
 main.obj: ../uartstdio.h
 main.obj: ../n64usbhid.h
+main.obj: ../protocol.h
 main.obj: ../device.h
 
 ../main.c: 
@@ -70,4 +71,5 @@ main.obj: ../device.h
 /opt/tiva/tivaware/usblib/usbhid.h: 
 ../uartstdio.h: 
 ../n64usbhid.h: 
+../protocol.h: 
 ../device.h: 

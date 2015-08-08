@@ -352,15 +352,20 @@ void sendString(const char *pcString, ...) {
 	va_start(vaArgP, pcString);
 
 	char buf[64];
-	uvsnprintf(buf, 0x64, pcString, vaArgP);
+	uvsnprintf(buf, 64, pcString, vaArgP);
     va_end(vaArgP);
 	if(isTxDataAvailable()) {
 		USBDHIDReportWrite(&hidDevice, buf, ustrlen(buf), true);
 	}
 }
 
+void sendUsbData(uint8_t* buffer, int length) {
+	while(!isTxDataAvailable());
+	USBDHIDReportWrite(&hidDevice, buffer, length, true);
+}
+
 uint8_t readBuffer[64];
-uint8_t* readData(unsigned long length) {
+uint8_t* receiveUsbData(unsigned long length) {
 	USBDHIDPacketRead(&hidDevice, readBuffer, length, true);
 	return readBuffer;
 }
