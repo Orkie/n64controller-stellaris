@@ -31,9 +31,11 @@
 
 #include "uartstdio.h"
 #include "n64usbhid.h"
+#include "protocol.h"
 #include "device.h"
 
 #define SYSCTL_PERIPH_PLL       0x30000010  // PLL
+#define GPIO_PIN_TYPE_OD_WPU    0x0000000B
 
 #define RED_LED   GPIO_PIN_1
 #define BLUE_LED  GPIO_PIN_2
@@ -54,40 +56,61 @@ void init_usb_uart() {
 	UARTStdioInit(0);
 }
 
+void initN64Controller() {
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+	SysCtlGPIOAHBEnable(SYSCTL_PERIPH_GPIOB);
+	GPIOPadConfigSet(GPIO_PORTB_AHB_BASE, 0x0F, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_OD_WPU);
+
+	GCN64InitializeProtocol();
+}
+
 int main(void) {
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_PLL);
 	SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
-
 
     // Configure LED
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
 	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED);
 	GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, RED_LED);
 
-//	init_usb_uart();
-
 	initN64USB();
+	initN64Controller();
 
-	GCN64DevInitialize();
+	uint8_t n64Buffer[35];
 
-	uint8_t buffer[32];
-	buffer[0] = 0x00;
-	buffer[1] = 0x00;
-	buffer[2] = 0x00;
-	n64Transmit(buffer, 1);
-	int count = n64Receive(buffer);
-	if(count == 3 && buffer[0] == 0x05 && buffer[1] == 0x00) {
-		GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
-	}
+	int i;
 
 	while(1) {
-		buffer[0] = 0x01;
-		n64Transmit(buffer, 1);
-		int c2 = n64Receive(buffer);
-		if(c2 == 4 && buffer[0] != 0) {
-			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, GREEN_LED);
+		for(i = 0 ; i < 35 ; i++) {
+			n64Buffer[i] = 0x00;
 		}
-//			UARTprintf("Bytes: %x %x %x %d\n", buffer[0], buffer[1], buffer[2], c2);
-		sysDelayUs(1000);
+		while(!isDataReadyToRead());
+		uint8_t* receivedUsbData = receiveUsbData(35);
+
+		switch(receivedUsbData[0]) {
+		case 0x02:
+			// TODO - implement this!
+			break;
+		case 0x03:
+			// TODO - implement this!
+			break;
+		case 0x01:
+		case 0xFF:
+		case 0x00:
+		default:
+			n64Transmit(receivedUsbData, 1);
+			n64Receive(n64Buffer);
+			if(n64Buffer[0] == 0x80) {
+				GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
+			}
+			for(i = 0 ; i < 35 ; i+=5) {
+				sendUsbData(n64Buffer+i, 5);
+			}
+			sysDelayUs(1000);
+//			sendUsbData(n64Buffer, 35);
+			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
+		}
+
+//		sysDelayUs(1000);
 	}
 }
