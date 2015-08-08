@@ -82,8 +82,14 @@ int main(void) {
 	}
 
 	while(1) {
+		buffer[0] = 0x01;
 		n64Transmit(buffer, 1);
-//		int c2 = n64Receive(buffer);
+		int c2 = n64Receive(buffer);
+		if(c2 == 4 && buffer[0] & 0x80) {
+			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
+		} else {
+			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, GREEN_LED);
+		}
 //			UARTprintf("Bytes: %x %x %x %d\n", buffer[0], buffer[1], buffer[2], c2);
 		sysDelayUs(1000);
 	}

@@ -27,7 +27,7 @@
 #define READTIMEOUT 100
 
 volatile uint8_t currentBit;
-volatile int currentByte;
+volatile int currentByteNumber;
 volatile uint8_t buffer[256];
 volatile int txNumBytes;
 volatile int interruptCount;
@@ -46,73 +46,82 @@ volatile uint32_t highTime;
 #define GPIODIRSET(ulPort, ucPins, ulPinIO) (HWREG((ulPort) + GPIO_O_DIR) = (((ulPinIO) & 1) ? (HWREG((ulPort) + GPIO_O_DIR) | (ucPins)) : (HWREG((ulPort) + GPIO_O_DIR) & ~(ucPins))))
 #define GPIOPINREAD(ulPort, ucPins) (HWREGB((ulPort) + GPIO_O_DATA + ((ucPins) << 2)))
 
-inline void prepareOutputSteps() {
-	if(CURRENT_BIT()) {
-		outputSteps[3] = 0x00;
-		outputSteps[2] = 0xFF;
-		outputSteps[1] = 0xFF;
-		outputSteps[0] = 0xFF;
-	} else {
-		outputSteps[3] = 0x00;
-		outputSteps[2] = 0x00;
-		outputSteps[1] = 0x00;
-		outputSteps[0] = 0xFF;
-	}
+volatile uint8_t currentByte;
+volatile uint8_t currentBitMask;
+volatile int currentByteNumber;
+
+#define OUTPUT_HIGH()	GPIOPINWRITE(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, 0xFF)
+#define OUTPUT_LOW()	GPIOPINWRITE(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, 0x00)
+
+inline void delayUs(int us) {
+	interruptCount = us;
+	while(interruptCount != 0);
 }
 
-void n64Transmit(uint8_t bytes[], int length) {
-	// prepare the tx buffer
-	int i;
-	for(i = 0 ; i < length ; i++) {
-		buffer[i] = bytes[i];
-	}
+inline void transmit0() {
+	OUTPUT_LOW();
+	delayUs(3);
+	OUTPUT_HIGH();
+	delayUs(1);
+}
 
-	currentBit = 0x80; // 0b10000000
-	currentByte = 0;
-	interruptCount = 4;
-	txNumBytes = length;
+inline void transmit1() {
+	OUTPUT_LOW();
+	delayUs(1);
+	OUTPUT_HIGH();
+	delayUs(3);
+}
 
-	prepareOutputSteps();
+inline void transmitStop() {
+	OUTPUT_LOW();
+	delayUs(1);
+	OUTPUT_HIGH();
+	delayUs(2);
+}
+
+void n64Transmit(uint8_t buffer[], int length) {
+	currentByteNumber = 0;
+	interruptCount = 0;
+
 	GPIOPINWRITE(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, 0xFF);
 	GPIODIRSET(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, GPIO_DIR_MODE_OUT);
 	TIMERENABLE(TIMER0_BASE, TIMER_A);
 
-	while(1) {
-		while(interruptCount != 0);
-		// we're now ready to load more data
-		if(currentByte == txNumBytes) {
-			// we've finished
-			TIMERDISABLE(TIMER0_BASE, TIMER_A);
-			GPIOPINWRITE(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, 0xFF);
-			return;
+	while(currentByteNumber < length) {
+		// load byte
+		currentByte = buffer[currentByteNumber];
+		currentBitMask = 0x80;
+
+		// transmit a byte
+		while(currentBitMask != 0) {
+			if(currentByte & currentBitMask) {
+				// transmit 1
+				transmit1();
+			} else {
+				// transmit 0
+				transmit0();
+			}
+
+			// shift the mask
+			currentBitMask >>= 1;
 		}
 
-		if((currentBit >>= 1) == 0) { // we've finished the byte
-			data = buffer[currentByte++];
-			currentBit = 0x80;
-			if(currentByte == txNumBytes) { // should the next transmit be the the stop signal?
-				// send stop signal
-				outputSteps[2] = 0x00;
-				outputSteps[1] = 0xFF;
-				outputSteps[0] = 0xFF;
-				interruptCount = 3;
-			} else { // prepare the next bit to send for the new byte
-				prepareOutputSteps();
-				interruptCount = 4;
-			}
-		} else {
-			// byte not finished, load next bit
-			prepareOutputSteps();
-			interruptCount = 4;
-		}
+		currentByteNumber++;
 	}
+
+	// write stop bit
+	transmitStop();
+
+	// done!
+	TIMERDISABLE(TIMER0_BASE, TIMER_A);
+	GPIOPINWRITE(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, 0xFF);
 }
 
 int n64Receive(uint8_t buffer[]) {
 	int bytesRead = 0;
 	bool firstLoop = false;
 	newBit = false;
-	currentByte = 0;
+	currentByteNumber = 0;
 	currentBit = 0x80;
 	lowTime = 0;
 	highTime = 0;
@@ -136,7 +145,7 @@ int n64Receive(uint8_t buffer[]) {
 			if((currentBit >>= 1) == 0) {
 				// new byte!
 				currentBit = 0x80;
-				buffer[currentByte++] = data;
+				buffer[currentByteNumber++] = data;
 				data = 0;
 				bytesRead++;
 			}
@@ -153,10 +162,8 @@ int n64Receive(uint8_t buffer[]) {
 	}
 }
 
-volatile bool trigger = false;
 void Timer0IntHandler() {
 	TIMERINTCLEAR(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-	GPIOPINWRITE(GPIO_PORTB_AHB_BASE, GPIO_PIN_0, outputSteps[interruptCount-1]);
 	if(interruptCount != 0) {
 		interruptCount--;
 	}
@@ -201,10 +208,10 @@ void GCN64InitializeProtocol(void)
 	g_ucHasInitialized = true;
 }
 
-inline void delayUs(int i) {
-	g_ucNextDelay = i;
-	while (g_ucNextDelay != 0);
-}
+//inline void delayUs(int i) {
+//	g_ucNextDelay = i;
+//	while (g_ucNextDelay != 0);
+//}
 
 unsigned long GCN64Send(unsigned long ulPort, unsigned char ucPin, unsigned char *pucBuffer, unsigned long ulToSend)
 {
