@@ -57,7 +57,6 @@ void init_usb_uart() {
 int main(void) {
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_PLL);
 	SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
-//	SysCtlClockSet(SYSCTL_SYSDIV_4|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN); // 50MHz
 
 
     // Configure LED
@@ -67,12 +66,12 @@ int main(void) {
 
 //	init_usb_uart();
 
-//	initN64USB();
+	initN64USB();
 
 	GCN64DevInitialize();
 
 	uint8_t buffer[32];
-	buffer[0] = 0x01;
+	buffer[0] = 0x00;
 	buffer[1] = 0x00;
 	buffer[2] = 0x00;
 	n64Transmit(buffer, 1);
@@ -85,9 +84,7 @@ int main(void) {
 		buffer[0] = 0x01;
 		n64Transmit(buffer, 1);
 		int c2 = n64Receive(buffer);
-		if(c2 == 4 && buffer[0] & 0x80) {
-			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
-		} else {
+		if(c2 == 4 && buffer[0] != 0) {
 			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, GREEN_LED);
 		}
 //			UARTprintf("Bytes: %x %x %x %d\n", buffer[0], buffer[1], buffer[2], c2);
