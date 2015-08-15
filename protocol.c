@@ -76,7 +76,7 @@ inline void transmitStop() {
 	OUTPUT_LOW();
 	delayUs(1);
 	OUTPUT_HIGH();
-	delayUs(2);
+	delayUs(1);
 }
 
 void n64Transmit(uint8_t buffer[], int length) {
