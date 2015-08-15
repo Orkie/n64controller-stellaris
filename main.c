@@ -80,22 +80,8 @@ int main(void) {
 
 	while(1) {
 		while(!isDataReadyToRead());
-		uint8_t* receivedUsbData = receiveUsbData(35);
-
-		switch(receivedUsbData[0]) {
-		case 0x02:
-//			 TODO - implement this!
-			break;
-		case 0x03:
-			// TODO - implement this!
-			break;
-		case 0x01:
-		case 0xFF:
-		case 0x00:
-		default:
-			n64Transmit(receivedUsbData, 1);
-		}
-
+		uint8_t* receivedUsbData = receiveUsbData(36);
+		n64Transmit(receivedUsbData+1, receivedUsbData[0]); // send however many bytes the first byte of received data tells us to
 		n64Buffer[0] = n64Receive(n64Buffer+1); // set first byte to be length of transmission from controller
 		sendUsbData(n64Buffer, 36);
 	}
