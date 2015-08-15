@@ -1,6 +1,7 @@
 #define PART_TM4C123GH6PM
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <hw_ints.h>
 #include <hw_memmap.h>
@@ -84,5 +85,6 @@ int main(void) {
 		n64Transmit(receivedUsbData+1, receivedUsbData[0]); // send however many bytes the first byte of received data tells us to
 		n64Buffer[0] = n64Receive(n64Buffer+1); // set first byte to be length of transmission from controller
 		sendUsbData(n64Buffer, 36);
+		memset(n64Buffer, 0x00, 36);
 	}
 }
