@@ -76,20 +76,15 @@ int main(void) {
 	initN64USB();
 	initN64Controller();
 
-	uint8_t n64Buffer[35];
-
-	int i;
+	uint8_t n64Buffer[36];
 
 	while(1) {
-		for(i = 0 ; i < 35 ; i++) {
-			n64Buffer[i] = 0x00;
-		}
 		while(!isDataReadyToRead());
 		uint8_t* receivedUsbData = receiveUsbData(35);
 
 		switch(receivedUsbData[0]) {
 		case 0x02:
-			// TODO - implement this!
+//			 TODO - implement this!
 			break;
 		case 0x03:
 			// TODO - implement this!
@@ -99,18 +94,9 @@ int main(void) {
 		case 0x00:
 		default:
 			n64Transmit(receivedUsbData, 1);
-			n64Receive(n64Buffer);
-			if(n64Buffer[0] == 0x80) {
-				GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
-			}
-			for(i = 0 ; i < 35 ; i+=5) {
-				sendUsbData(n64Buffer+i, 5);
-			}
-			sysDelayUs(1000);
-//			sendUsbData(n64Buffer, 35);
-			GPIOPinWrite(GPIO_PORTF_BASE, RED_LED|BLUE_LED|GREEN_LED, BLUE_LED);
 		}
 
-//		sysDelayUs(1000);
+		n64Buffer[0] = n64Receive(n64Buffer+1); // set first byte to be length of transmission from controller
+		sendUsbData(n64Buffer, 36);
 	}
 }

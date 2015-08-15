@@ -119,29 +119,29 @@ static const uint8_t hidReportDescriptor[] =
     Collection(USB_HID_APPLICATION),
         Collection(USB_HID_PHYSICAL),
 
-		//
-		// 8 - 1 bit values for the first set of buttons.
-		//
-		UsagePage(USB_HID_BUTTONS),
-		UsageMinimum(1),
-		UsageMaximum(8),
-		LogicalMinimum(0),
-		LogicalMaximum(1),
-		ReportSize(1),
-		ReportCount(8),
-		Input(USB_HID_INPUT_DATA | USB_HID_INPUT_VARIABLE | USB_HID_INPUT_ABS),
-
-		//
-		// 8 - 1 bit values for the second set of buttons.
-		//
-		UsagePage(USB_HID_BUTTONS),
-		UsageMinimum(1),
-		UsageMaximum(8),
-		LogicalMinimum(0),
-		LogicalMaximum(1),
-		ReportSize(1),
-		ReportCount(8),
-		Input(USB_HID_INPUT_DATA | USB_HID_INPUT_VARIABLE | USB_HID_INPUT_ABS),
+//		//
+//		// 8 - 1 bit values for the first set of buttons.
+//		//
+//		UsagePage(USB_HID_BUTTONS),
+//		UsageMinimum(1),
+//		UsageMaximum(8),
+//		LogicalMinimum(0),
+//		LogicalMaximum(1),
+//		ReportSize(1),
+//		ReportCount(8),
+//		Input(USB_HID_INPUT_DATA | USB_HID_INPUT_VARIABLE | USB_HID_INPUT_ABS),
+//
+//		//
+//		// 8 - 1 bit values for the second set of buttons.
+//		//
+//		UsagePage(USB_HID_BUTTONS),
+//		UsageMinimum(1),
+//		UsageMaximum(8),
+//		LogicalMinimum(0),
+//		LogicalMaximum(1),
+//		ReportSize(1),
+//		ReportCount(8),
+//		Input(USB_HID_INPUT_DATA | USB_HID_INPUT_VARIABLE | USB_HID_INPUT_ABS),
 
 		//
 		// The X, Y Z and Rx (Will appear as two thumb controls.
@@ -154,7 +154,7 @@ static const uint8_t hidReportDescriptor[] =
 		LogicalMinimum(-127),
 		LogicalMaximum(127),
 		ReportSize(8),
-		ReportCount(4),
+		ReportCount(36),
 		Input(USB_HID_INPUT_DATA | USB_HID_INPUT_VARIABLE | USB_HID_INPUT_ABS),
 
 
@@ -226,7 +226,7 @@ const uint8_t g_pui8HIDInEndpoint[HIDINENDPOINT_SIZE] =
     USB_EP_ATTR_INT,            // Endpoint is an interrupt endpoint.
     USBShort(USBFIFOSizeToBytes(USB_FIFO_SZ_64)),
                                 // The maximum packet size.
-    16,                         // The polling interval for this endpoint.
+    1,                         // The polling interval for this endpoint.
 };
 
 const uint8_t g_pui8HIDOutEndpoint[HIDINENDPOINT_SIZE] =
@@ -240,7 +240,7 @@ const uint8_t g_pui8HIDOutEndpoint[HIDINENDPOINT_SIZE] =
     USB_EP_ATTR_INT,            // Endpoint is an interrupt endpoint.
     USBShort(USBFIFOSizeToBytes(USB_FIFO_SZ_64)),
                                 // The maximum packet size.
-    16,                         // The polling interval for this endpoint.
+    1,                         // The polling interval for this endpoint.
 };
 
 const tConfigSection configSection =
