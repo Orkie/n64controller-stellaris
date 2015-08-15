@@ -7,6 +7,7 @@ main.obj: /opt/tiva/ccs/ccsv5/tools/compiler/arm_5.1.1/include/yvals.h
 main.obj: /opt/tiva/ccs/ccsv5/tools/compiler/arm_5.1.1/include/stdarg.h
 main.obj: /opt/tiva/ccs/ccsv5/tools/compiler/arm_5.1.1/include/linkage.h
 main.obj: /opt/tiva/ccs/ccsv5/tools/compiler/arm_5.1.1/include/_lock.h
+main.obj: /opt/tiva/ccs/ccsv5/tools/compiler/arm_5.1.1/include/string.h
 main.obj: /opt/tiva/tivaware/inc/hw_ints.h
 main.obj: /opt/tiva/tivaware/inc/hw_memmap.h
 main.obj: /opt/tiva/tivaware/inc/hw_types.h
@@ -44,6 +45,7 @@ main.obj: ../device.h
 /opt/tiva/ccs/ccsv5/tools/compiler/arm_5.1.1/include/stdarg.h: 
 /opt/tiva/ccs/ccsv5/tools/compiler/arm_5.1.1/include/linkage.h: 
 /opt/tiva/ccs/ccsv5/tools/compiler/arm_5.1.1/include/_lock.h: 
+/opt/tiva/ccs/ccsv5/tools/compiler/arm_5.1.1/include/string.h: 
 /opt/tiva/tivaware/inc/hw_ints.h: 
 /opt/tiva/tivaware/inc/hw_memmap.h: 
 /opt/tiva/tivaware/inc/hw_types.h: 
